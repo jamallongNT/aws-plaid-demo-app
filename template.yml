@@ -85,7 +85,7 @@ Resources:
             reason: "Ignoring KMS key"
     Properties:
       Description: !Sub "Plaid Credential - ${PlaidEnvironment}"
-      Name: !Sub "plaid/${PlaidEnvironment}/credentials"
+      Name: !Sub "plaid/${PlaidEnvironment}/credentialss"
       SecretString: !Sub |-
         {
           "client_id": "${PlaidClientId}",
