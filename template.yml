@@ -97,7 +97,7 @@ Resources:
             reason: "Ignoring KMS key"
     Properties:
       Description: !Sub "Plaid Credential - ${PlaidEnvironment}"
-      Name: !Sub "plaid/${PlaidEnvironment}/credentialss"
+      Name: !Sub "plaid/${PlaidEnvironment}/credentialsss"
       SecretString: !Sub |-
         {
           "client_id": "${PlaidClientId}",
@@ -111,29 +111,6 @@ Resources:
           Value: !Ref GitHubRepo
         - Key: Environment
           Value: !Ref Environment
-
-  MyFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: PlaidAppHandler
-      CodeUri: ./src
-      Handler: index.handler
-      Runtime: nodejs18.x
-      Environment:
-        Variables:
-          PLAID_SECRET_ARN: !If
-            - CreatePlaidCredential
-            - !Ref PlaidCredential
-            - !Ref ExistingPlaidCredentialArn
-      Policies:
-        - Statement:
-            Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-            Resource: !If
-              - CreatePlaidCredential
-              - !Ref PlaidCredential
-              - !Ref ExistingPlaidCredentialArn
 
   WebhookDeadLetterQueue:
     Type: "AWS::SQS::Queue"
