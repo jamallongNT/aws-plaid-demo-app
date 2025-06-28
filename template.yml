@@ -34,15 +34,6 @@ Parameters:
       - sandbox
       - development
       - production
-  UseExistingPlaidCredential:
-    Type: String
-    AllowedValues: ["true", "false"]
-    Default: "false"
-    Description: Set to true if you're using an existing Plaid secret
-  ExistingPlaidCredentialArn:
-    Type: String
-    Default: ""
-    Description: The ARN or name of an existing Plaid secret (used only if UseExistingPlaidCredential is true)
   GitHubAccessToken:
     Type: String
     Description: GitHub Personal Access Token
@@ -81,9 +72,6 @@ Globals:
       Environment: !Ref Environment
     Timeout: 10 # seconds
     Tracing: Active
-
-Conditions:
-  CreatePlaidCredential: !Equals [!Ref UseExistingPlaidCredential, "false"]
 
 Resources:
   PlaidCredential:
