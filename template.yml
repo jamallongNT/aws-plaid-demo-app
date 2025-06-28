@@ -34,6 +34,15 @@ Parameters:
       - sandbox
       - development
       - production
+  UseExistingPlaidCredential:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: Set to true if you're using an existing Plaid secret
+  ExistingPlaidCredentialArn:
+    Type: String
+    Default: ""
+    Description: The ARN or name of an existing Plaid secret (used only if UseExistingPlaidCredential is true)
   GitHubAccessToken:
     Type: String
     Description: GitHub Personal Access Token
@@ -73,6 +82,9 @@ Globals:
     Timeout: 10 # seconds
     Tracing: Active
 
+Conditions:
+  CreatePlaidCredential: !Equals [!Ref UseExistingPlaidCredential, "false"]
+
 Resources:
   PlaidCredential:
     Type: "AWS::SecretsManager::Secret"
@@ -85,7 +97,7 @@ Resources:
             reason: "Ignoring KMS key"
     Properties:
       Description: !Sub "Plaid Credential - ${PlaidEnvironment}"
-      Name: !Sub "plaid/${PlaidEnvironment}/credentialss"
+      Name: !Sub "plaid/${PlaidEnvironment}/credentials"
       SecretString: !Sub |-
         {
           "client_id": "${PlaidClientId}",
@@ -99,6 +111,29 @@ Resources:
           Value: !Ref GitHubRepo
         - Key: Environment
           Value: !Ref Environment
+
+  MyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PlaidAppHandler
+      CodeUri: ./src
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Environment:
+        Variables:
+          PLAID_SECRET_ARN: !If
+            - CreatePlaidCredential
+            - !Ref PlaidCredential
+            - !Ref ExistingPlaidCredentialArn
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !If
+              - CreatePlaidCredential
+              - !Ref PlaidCredential
+              - !Ref ExistingPlaidCredentialArn
 
   WebhookDeadLetterQueue:
     Type: "AWS::SQS::Queue"
